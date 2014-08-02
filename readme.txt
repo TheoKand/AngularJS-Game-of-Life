@@ -1,17 +1,24 @@
-﻿Single Page Application demonstrating a fully functional chat room with MVC / JQuery timers. 
 ﻿
-This sample was submitted as an article to CodeProject.com:
-http://www.codeproject.com/Articles/794147/MVC-Chat-room
+Conway's Game of Life with Angular.JS
+-------------------------------------
 
-The server state (users,chat history) is persisted with a static Model instance. 
-The partial views query the server state every 5 seconds. 
-If a registered user does not query for 15 seconds he is considered "logged off" by the server. 
+This is a Single Page Application built with the amazing application framework that is Angular.JS. Click 
+inside the blue area to create multiple single cells and form the initial configuration. Then click 
+'Start' to allow the colony to evolve based on the rules of the game of life.
 
-Technologies used:
-- MVC4
-- Razor
-- JQuery
+Online demo: http://theokand.com/gameoflife
+Screenshot: https://raw.githubusercontent.com/TheoKand/AngularJS-Game-of-Life/master/screenshot.png
 
-Online demo: http://chat.theokand.com/
+Click 'Help' once the page loads to see a tutorial that is created using the TipEngine JQuery library: https://github.com/TheoKand/jQueryTutorialEngine
 
 
+About Conway's Game Of Life
+---------------------------
+The Game of Life, also known simply as Life, is a cellular automaton devised by the British mathematician
+John Horton Conway in 1970.
+
+The 'game' is a zero-player game, meaning that its evolution is determined by its initial state, requiring no 
+further input. One interacts with the Game of Life by creating an initial configuration and observing how it 
+evolves or, for advanced players, by creating patterns with particular properties.
+
+More information: http://en.wikipedia.org/wiki/Conway's_Game_of_Life
