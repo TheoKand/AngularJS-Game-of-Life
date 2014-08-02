@@ -1,0 +1,28 @@
+﻿        /* CSS for the overlay layer that covers the entire page when the tutorial is displayed. Only the element that the current tip is about is made visible and also highlighted with a "glow" */
+        #DarkLayer {
+            position: absolute;
+            height: 100%;
+            width: 100%;
+            left: 0;
+            top: 0;
+            margin: 0;
+            padding: 0;
+            background-color: black;
+            opacity: 0.6;
+            z-index: 10;
+        }
+
+        .Glow {
+            box-shadow: 0 0 20px 10px white;
+        }
+        /* CSS for the "bubble" that contains the tip of the current element
+        */
+        #TipLayer {
+            -moz-border-radius: 15px;
+            border-radius: 15px;
+            position: absolute;
+            z-index: 11;
+            text-align: center;
+            padding: 5px;
+            background-color: White;
+        }

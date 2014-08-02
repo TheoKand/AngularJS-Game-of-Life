@@ -1,0 +1,288 @@
+﻿<html ng-app="App">
+<head>
+    <meta charset="utf-8">
+    <title>Conway's GAME OF LIFE with Angular.JS</title>
+    <link rel="stylesheet" type="text/css" href="TipEngine/TipEngine.css" />
+    <style>
+        .Cell {
+            width: 10px;
+            height: 10px;
+            margin: 0px;
+            border: 1px solid #5800ff;
+            float: left;
+        }
+
+        button {
+            margin: 5px;
+            font-size: larger;
+            font-weight: bold;
+            color: white;
+            width: 90%;
+            height: 40px;
+            background-color: rgb(122, 120, 120);
+        }
+
+        #message {
+            position: absolute;
+            left: 10px;
+            top: 10px;
+            color: red;
+            margin: 5px;
+            background-color: white;
+            font-weight: bold;
+            font-size: x-large;
+            z-index: 100;
+        }
+
+        #gameOfLifePanel {
+            float: left;
+            margin: 10px;
+            background-color: blue;
+            position: relative;
+            border: 1px solid rgba(0,0,0,0.15);
+            border-radius: 4px;
+            transition: all 0.3s ease-out;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.5), 0 2px 2px rgba(0,0,0,0.3), 0 0 4px 1px rgba(0,0,0,0.2); 
+            text-decoration: none;
+            text-shadow: 0 1px rgba(255,255,255,0.7;
+        }
+
+        #controlsPanel {
+
+        }
+    </style>
+    <script src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.7.1.min.js"></script>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/angular.js/1.2.1/angular.min.js"></script>
+    <script src="Templates.js"></script>
+    <script src="TipEngine/TipEngine.js"></script>
+    <script>
+        var App = angular.module('App', []);
+        App.controller('MyController', function ($scope) {
+
+            //the method Clear of the controller is called to reset everything
+            //and start with an emty colony
+            $scope.clear = function () {
+                $scope.running = false;
+                $scope.generation = 0;
+                $scope.population = 0;
+                $scope.colony = new Array(arrayLength);
+                for (var x = 0; x < arrayLength; x++) {
+                    $scope.colony[x] = new Array(arrayLength);
+                    for (var y = 0; y < arrayLength; y++)
+                        $scope.colony[x][y] = 0;
+                }
+
+            };
+
+            //called when the user clicks on the blue area. If the cell was empty, a cell is
+            //created, otherwise it's killed.
+            $scope.createCell = function (x, y) {
+                $scope.colony[x][y] = ($scope.colony[x][y] == 0) ? 1 : 0;
+                if ($scope.stillLife)
+                    $scope.start();
+
+            };
+
+            //returns the color of this cell based on it's generation. The darker the older.
+            $scope.getCellColor = function (generation) {
+
+                var gradient = ["", "#E2E2E2", "#C6C6C6", "#AAAAAA", "#8D8D8D", "#717171", "#555555", "#383838", "#1C1C1C", "#000000"]
+                return gradient[generation <= 9 ? generation : 9];
+
+            };
+
+            //load the selected preset colony
+            $scope.loadPreset = function (index) {
+
+                $scope.clear();
+                $scope.colony = templates[index].colony;
+
+            };
+
+            //start the colony
+            $scope.start = function () {
+
+                $scope.running = true;
+                $scope.stillLife = false;
+                setTimeout(Animate, 1);
+            };
+
+            //stop the colony
+            $scope.stop = function () {
+                $scope.running = false;
+            };
+
+            //undocumented function ;)
+            $scope.save = function () {
+                var obj = JSON.stringify($scope.colony);
+                console.log(obj);
+            }
+
+            //returns the number of neighbours of this cell
+            function CountNeighbours(x, y) {
+
+                var retVal = 0;
+
+                //the check is wrapped in a function because some neighbours
+                //might be outside the bounds of the arrays
+                var hasNeighbourAt = function (xi, yi) {
+                    if (xi > -1 && yi > -1 && xi < arrayLength && yi < arrayLength) {
+                        if ($scope.colony[xi][yi] > 0) return 1;
+                    }
+                    return 0;
+                };
+
+                if (hasNeighbourAt(x - 1, y - 1)) retVal++;
+                if (hasNeighbourAt(x, y - 1)) retVal++;
+                if (hasNeighbourAt(x + 1, y - 1)) retVal++;
+
+                if (hasNeighbourAt(x - 1, y)) retVal++;
+                if (hasNeighbourAt(x + 1, y)) retVal++;
+
+                if (hasNeighbourAt(x - 1, y + 1)) retVal++;
+                if (hasNeighbourAt(x, y + 1)) retVal++;
+                if (hasNeighbourAt(x + 1, y + 1)) retVal++;
+
+                return retVal;
+
+            }
+
+            //briefly show a message to the user
+            function FlashMessage(msg, timeout) {
+                document.getElementById("message").innerHTML = msg;
+                setTimeout("document.getElementById('message').innerHTML='';", 2000);
+            }
+
+
+            var arrayLength = 50; //the dimensions of the colony. Change it to increase/decrease the colony size.
+            var interval = 1; //how fast the colony evolves.
+            var maxGeneration = 0; //when should the evolution stop. 0 for indefinite
+            var displayEvery = 0; //how many generations to bypass when rendering the result. 0 for no bypass
+            var stillLifeCounter = 0;
+
+            $scope.clear();
+            $scope.presets = templates; //the colony presets are declared in a seperate js file Templates.js
+            $scope.colony = templates[0].colony; //load the first preset
+
+
+            //this method is where everything happens. The new state of the colony is calculated
+            //here in each iteration and the result is saved in the $scope.
+            function Animate() {
+
+                if (!$scope.running) return;
+
+                //initialize a new colony that will hold the state of the colony after this iteration
+                var newColony = new Array(arrayLength);
+                for (var x = 0; x < arrayLength; x++) {
+                    newColony[x] = new Array(arrayLength);
+                    for (var y = 0; y < arrayLength; y++)
+                        newColony[x][y] = 0;
+                }
+
+                var newPopulation = 0;
+
+                for (var x = 0; x < arrayLength; x++) {
+                    for (var y = 0; y < arrayLength; y++) {
+
+                        var neighbours = CountNeighbours(x, y);
+
+                        if ($scope.colony[x][y] > 0) {
+                            //Any live cell with fewer than two live neighbours dies, as if caused by under-population.
+                            //Any live cell with two or three live neighbours lives on to the next generation.
+                            //Any live cell with more than three live neighbours dies, as if by overcrowding.
+
+                            newPopulation++;
+
+                            if (neighbours < 2 || neighbours > 3)
+                                newColony[x][y] = 0;
+                            else
+                                newColony[x][y] = $scope.colony[x][y] + 1;
+                        } else {
+
+                            //Any dead cell with exactly three live neighbours becomes a live cell, as if by reproduction.
+                            if (neighbours == 3)
+                                newColony[x][y] = 1;
+                        }
+                    }
+                }
+
+                //show message if colony has died off
+                if (newPopulation == 0) {
+                    FlashMessage("The colony has died off.");
+                    $scope.generation = 0;
+                } else if (newPopulation == $scope.population) {
+                    //check if the colony has become a still life
+                    if (newColony.equals($scope.colony)) {
+                        stillLifeCounter++;
+                        //if the population is constant for 10 generations...
+                        if (stillLifeCounter > 10) {
+                            stillLifeCounter = 0;
+                            FlashMessage("The colony has become a still life.");
+                            $scope.stop();
+                            $scope.stillLife = true;
+                        }
+                    }
+
+                }
+
+
+                $scope.population = newPopulation;
+                $scope.colony = newColony;
+
+                //render the model changes
+                if (displayEvery == 0 || $scope.generation % displayEvery == 0)
+                    $scope.$apply();
+
+                $scope.generation++;
+                if ((maxGeneration == 0 || $scope.generation <= maxGeneration) && $scope.running && $scope.population > 0)
+                    setTimeout(Animate, interval);
+                else {
+                    $scope.stop();
+                }
+
+            }
+
+
+        });
+
+    </script>
+</head>
+<body ng-controller="MyController">
+
+    <div id="container" style="height:100%;width:100%;position:absolute;top:0;left:0">
+        <div id="message"></div>
+        <div id="gameOfLifePanel">
+
+            <div ng-repeat="row in colony track by $id($index)" style="background-color:red;clear: both;">
+                <div ng-repeat="col in row track by $id($index)" class="Cell" style="background-color:{{ getCellColor(col) }}" ng-mousedown="createCell($parent.$index , $index);">
+                </div>
+            </div>
+        </div>
+        <div id="controlsPanel" style="float: left;text-align: center;position: relative;width: 180px;margin: 10px;padding: 8px 15px;background: #B8ED01;border: 1px solid rgba(0,0,0,0.15);border-radius: 4px;transition: all 0.3s ease-out;box-shadow: inset 0 1px 0 rgba(255,255,255,0.5), 0 2px 2px rgba(0,0,0,0.3), 0 0 4px 1px rgba(0,0,0,0.2); text-decoration: none;text-shadow: 0 1px rgba(255,255,255,0.7);">
+        
+            Generation : {{generation}}<br />
+            Population : {{population}}<br />
+
+            <button ng-click="start()" ng-show="!running" ng-hide="running" style="background-color:green">Start</button>
+            <button ng-click="stop()" ng-show="running" ng-hide="!running" style="background-color:red">Stop</button>
+            <button ng-click="clear()" style="width:90%">Clear</button>
+
+            <p>
+                <b>Presets:</b><br />
+                <div ng-repeat="item in presets">
+                    <input type="radio" name="preset" value="{{$index}}" {{ $index= =0 && 'checked' || '' }} ng-click="loadPreset($index)">{{item.name}}<br>
+                </div>
+            </p>
+
+            <button id="helpLink">Help</button>
+
+            <p>
+                by <a href="https://github.com/TheoKand" target="_new">Theo Kandiliotis</a><br />
+            </p>
+        </div>
+    </div>
+
+
+
+</body>
+</html>
