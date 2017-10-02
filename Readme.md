@@ -23,17 +23,4 @@ further input. One interacts with the Game of Life by creating an initial config
 evolves or, for advanced players, by creating patterns with particular properties.
 
 More information: http://en.wikipedia.org/wiki/Conway's_Game_of_Life
-© 2017 GitHub, Inc.
-Terms
-Privacy
-Security
-Status
-Help
-Contact GitHub
-API
-Training
-Shop
-Blog
-About
-
 
